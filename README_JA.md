@@ -8,7 +8,7 @@
 
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
 [![license](https://img.shields.io/badge/PR-welcome-green.svg)](https://github.com/CyberAgentGameEntertainment/ResoDynamix/pulls)
-[![license](https://img.shields.io/badge/Unity-2022.3-green.svg)](#Requirements)
+[![license](https://img.shields.io/badge/Unity-6000.0-green.svg)](#Requirements)
 
 
 [ドキュメント( English )](README.md)<br/>
@@ -25,7 +25,7 @@ uGUIを用いたUI描画はRender ModeにOverlayを指定することで、ベ�
 1. Window > Package Manager を選択
 2. 「+」ボタン > Add package from git URL を選択
 3. 以下を入力してインストール
-   * git+ssh://git@git@github.com:CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix
+   * https://github.com/CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix
 
 <p align="center">
   <img width="60%" src="https://user-images.githubusercontent.com/47441314/143533003-177a51fc-3d11-4784-b9d2-d343cc622841.png" alt="Package Manager">
@@ -36,14 +36,14 @@ uGUIを用いたUI描画はRender ModeにOverlayを指定することで、ベ�
 ```json
 {
     "dependencies": {
-        "jp.co.cyberagent.reso-dynamix": "git+ssh://git@git@github.com:CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix"
+        "jp.co.cyberagent.reso-dynamix": "https://github.com/CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix"
     }
 }
 ```
 
 バージョンを指定したい場合には以下のように記述します。
 
-* git+ssh://git@git@github.com:CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix#1.0.0
+* https://github.com/CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix#1.0.0
 
 なお`No 'git' executable was found. Please install Git on your system and restart Unity`のようなメッセージが出た場合、マシンにGitをセットアップする必要がある点にご注意ください。
 
@@ -54,7 +54,7 @@ uGUIを用いたUI描画はRender ModeにOverlayを指定することで、ベ�
 {
   "dependencies": {
       "jp.co.cyberagent.reso-dynamix": {
-      "version": "git+ssh://git@github.com:CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix",
+      "version": "https://github.com/CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix",
       "depth": 0,
       "source": "git",
       "dependencies": {},

@@ -7,7 +7,7 @@
 
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
 [![license](https://img.shields.io/badge/PR-welcome-green.svg)](https://github.com/CyberAgentGameEntertainment/ResoDynamix/pulls)
-[![license](https://img.shields.io/badge/Unity-2022.3-green.svg)](#Requirements)
+[![license](https://img.shields.io/badge/Unity-6000.0-green.svg)](#Requirements)
 
 [Documentation (日本語)](README_JA.md)<br/>
 
@@ -23,7 +23,7 @@ Installation is performed with the following steps.
 1. Select Window > Package Manager
 2. Select "+" button > Add package from git URL
 3. Enter the following to install
-   * git+ssh://git@github.com/SGE-CoreTech/ResoDynamix.git?path=/Assets/ResoDynamix
+   * https://github.com/CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix
 
 <p align="center">
   <img width="60%" src="https://user-images.githubusercontent.com/47441314/143533003-177a51fc-3d11-4784-b9d2-d343cc622841.png" alt="Package Manager">
@@ -34,14 +34,14 @@ Alternatively, open Packages/manifest.json and add the following to the dependen
 ```json
 {
     "dependencies": {
-        "jp.co.cyberagent.reso-dynamix": "git+ssh://git@github.com:CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix"
+        "jp.co.cyberagent.reso-dynamix": "https://github.com/CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix"
     }
 }
 ```
 
 To specify a version, write as follows.
 
-* git+ssh://git@github.com:CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix#1.0.0
+* https://github.com/CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix#1.0.0
 
 Note that if you see a message like `No 'git' executable was found. Please install Git on your system and restart Unity`, you need to set up Git on your machine.
 
