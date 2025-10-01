@@ -1,5 +1,8 @@
 # ResoDynamix
-This document is the latest documentation for Reso Dynamix (Unity 6 RenderGraph version).
+
+[![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
+[![license](https://img.shields.io/badge/PR-welcome-green.svg)](https://github.com/CyberAgentGameEntertainment/ResoDynamix/pulls)
+[![license](https://img.shields.io/badge/Unity-2022.3-green.svg)](#Requirements)
 
 [Documentation (日本語)](README_JA.md)<br/>
 

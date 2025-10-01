@@ -1,5 +1,9 @@
 # ResoDynamix
-このドキュメントは最新のReso Dynamix( Unity6 RenderGraph版 )のドキュメントです。
+
+[![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
+[![license](https://img.shields.io/badge/PR-welcome-green.svg)](https://github.com/CyberAgentGameEntertainment/ResoDynamix/pulls)
+[![license](https://img.shields.io/badge/Unity-2022.3-green.svg)](#Requirements)
+
 
 [ドキュメント( English )](README.md)<br/>
 
