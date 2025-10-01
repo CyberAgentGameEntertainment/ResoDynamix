@@ -1,3 +1,8 @@
+<p align="center">
+<img src="Documentation/rezo_dmx_col_wh.png#gh-light-mode-only" alt="ResoDynamix">
+<img src="Documentation/rezo_dmx_col_bk.png#gh-dark-mode-only" alt="ResoDynamix">
+</p>
+
 # ResoDynamix
 
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
