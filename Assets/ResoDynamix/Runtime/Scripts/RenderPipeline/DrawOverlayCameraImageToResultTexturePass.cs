@@ -95,7 +95,7 @@ namespace ResoDynamix.Runtime.Scripts.RenderPipeline
         private RendererListHandle CreateTransparentRendererList(RenderGraph renderGraph, CullingResults cullResults, UniversalCameraData cameraData, UniversalRenderingData renderingData, UniversalLightData lightData)
         {
             var transparentFilteringSettings =
-                new FilteringSettings(RenderQueueRange.transparent, LayerMask.GetMask("UI"));
+                new FilteringSettings(RenderQueueRange.transparent);
             var transparentDrawSettings = CreateDrawingSettings(_shaderTagIds, renderingData, cameraData,
                 lightData, SortingCriteria.CommonTransparent);
             return renderGraph.CreateRendererList(new RendererListParams(cullResults,
@@ -104,7 +104,7 @@ namespace ResoDynamix.Runtime.Scripts.RenderPipeline
         
         private RendererListHandle CreateOpaqueRendererList(RenderGraph renderGraph, CullingResults cullResults, UniversalCameraData cameraData, UniversalRenderingData renderingData, UniversalLightData lightData)
         {
-            var opaqueFilteringSettings = new FilteringSettings(RenderQueueRange.opaque, LayerMask.GetMask("UI"));
+            var opaqueFilteringSettings = new FilteringSettings(RenderQueueRange.opaque);
             var opaqueDrawSettings = CreateDrawingSettings(_shaderTagIds, renderingData, cameraData,
                 lightData, SortingCriteria.CommonOpaque);
             return renderGraph.CreateRendererList(new RendererListParams(cullResults,
