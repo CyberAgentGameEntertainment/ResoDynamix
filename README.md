@@ -17,7 +17,7 @@ While uGUI-based UI rendering can be rendered at a different resolution from the
 
 If you are using Unity 2022 or Unity 6 (Compatible mode), please use the code from the `compatible-mode` branch. For details, refer to the document below.
 
-[Documentation (Unity 2022 or Compatible)](README_2022_or_Compatible_JA.md)<br/>
+[Documentation (Unity 2022 or Compatible)](README_2022_or_Compatible.md)<br/>
 
 ## 2. How To Use
 

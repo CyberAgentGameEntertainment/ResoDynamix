@@ -19,7 +19,7 @@ uGUIを用いたUI描画はRender ModeにOverlayを指定することで、ベ�
 
 なお、Unity 2022 or Unity 6(Compatibleモード)を利用している方は`compatible-mode`ブランチのコードを使用してください。詳細は下記のドキュメントを参照してください。
 
-[ドキュメント( Unity 2022 or Compatible )](README_2022_or_Compatible.md)<br/>
+[ドキュメント( Unity 2022 or Compatible )](README_2022_or_Compatible_JA.md)<br/>
 
 ## 2. How To Use
 
