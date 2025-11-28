@@ -7,13 +7,17 @@
 
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.md)
 [![license](https://img.shields.io/badge/PR-welcome-green.svg)](https://github.com/CyberAgentGameEntertainment/ResoDynamix/pulls)
-[![license](https://img.shields.io/badge/Unity-6000.0-green.svg)](#Requirements)
+[![license](https://img.shields.io/badge/Unity-2022.0-green.svg)](#Requirements)
 
 [Documentation (日本語)](README_JA.md)<br/>
 
 ## 1. Overview
 ResoDynamix is a dynamic resolution change library that allows you to change the rendering resolution of base cameras and overlay cameras.<br/>
 While uGUI-based UI rendering can be rendered at a different resolution from the base camera by specifying Overlay as the Render Mode, this library allows you to render at a different resolution from the base camera even when the Render Mode is not Overlay.<br/>
+
+If you are using Unity 2022 or Unity 6 (Compatible mode), please use the code from the `compatible-mode` branch. For details, refer to the document below.
+
+[Documentation (Unity 2022 or Compatible)](README_2022_or_Compatible_JA.md)<br/>
 
 ## 2. How To Use
 
