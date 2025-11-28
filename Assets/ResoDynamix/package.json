@@ -1,8 +1,8 @@
 {
   "name": "jp.co.cyberagent.reso-dynamix",
   "displayName": "Reso Dynamix",
-  "version": "2.1.7",
-  "unity": "2021.3",
+  "version": "1.0.0",
+  "unity": "2022.0",
   "license": "MIT",
   "dependencies": {
   },
