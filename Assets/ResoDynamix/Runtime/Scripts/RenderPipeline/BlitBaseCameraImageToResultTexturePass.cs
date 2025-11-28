@@ -1,12 +1,5 @@
-﻿// --------------------------------------------------------------
-// Copyright 2025 CyberAgent, Inc.
-// --------------------------------------------------------------
-
-using System;
-using UnityEngine;
+﻿using System;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.RenderGraphModule;
-using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
 
 namespace ResoDynamix.Runtime.Scripts.RenderPipeline
@@ -16,6 +9,7 @@ namespace ResoDynamix.Runtime.Scripts.RenderPipeline
     /// </summary>
     public class BlitBaseCameraImageToResultTexturePass : ScriptableRenderPass
     {
+        private readonly ProfilingSampler _profilingSampler = new(nameof(BlitBaseCameraImageToResultTexturePass));
         private ResoDynamixController _resoDynamixController;
         public BlitBaseCameraImageToResultTexturePass()
         {
@@ -26,26 +20,29 @@ namespace ResoDynamix.Runtime.Scripts.RenderPipeline
         {
             _resoDynamixController = resoDynamixController;
         }
-        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+#if UNITY_2023_3_OR_NEWER
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+#endif
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var resourceData = frameData.Get<UniversalResourceData>();
-            var contextItem= frameData.Get<BaseCameraContextItem>();
-            if (_resoDynamixController.UseResultRTHandle)
+            // Execute if we need to blit to ResultTexture manually
+            if (_resoDynamixController.NeedBlitToResultTextureManually)
             {
-                // Preparing the texture for the result rendering destination
-                var resultRtTexture = renderGraph.ImportTexture(_resoDynamixController.ResultRTHandle);
-                renderGraph.AddBlitPass(resourceData.activeColorTexture, resultRtTexture,
-                    Vector2.one, Vector2.zero);
+                var cmd = CommandBufferPool.Get();
+                using (new ProfilingScope(cmd, _profilingSampler))
+                {
+#if UNITY_2023_3_OR_NEWER
+                    Blit(cmd, renderingData.cameraData.renderer.cameraColorTargetHandle,
+                         _resoDynamixController.ResultTextureHandle);
+#else
+                    Blit(cmd, renderingData.cameraData.renderer.cameraColorTarget,
+                         _resoDynamixController.ResultTexture);
+#endif
+                }
+
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
             }
-            else
-            {
-                // Otherwise, blit the base camera's rendering result to the original write destination
-                renderGraph.AddBlitPass(resourceData.activeColorTexture, contextItem.BaseCameraColorTexture,
-                    Vector2.one, Vector2.zero);
-            }
-            resourceData.cameraColor = contextItem.BaseCameraColorTexture;
-            resourceData.cameraDepth = contextItem.BaseCameraDepthTexture;
-            
         }
     }
 }

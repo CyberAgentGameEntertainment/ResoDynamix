@@ -1,8 +1,4 @@
-﻿// --------------------------------------------------------------
-// Copyright 2025 CyberAgent, Inc.
-// --------------------------------------------------------------
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -14,26 +10,19 @@ namespace ResoDynamix.Runtime.Scripts
 {
     public class ResoDynamixController : MonoBehaviour
     {
-        private const int maxOverlayCameraCount = 32; // Maximum number of overlay cameras.
-
-        [FormerlySerializedAs("renderScale")] [SerializeField] [Range(0.1f, 1.0f)]
-        private float baseCameraRenderScale = 1.0f;
-
+        [FormerlySerializedAs("renderScale")] [SerializeField] [Range(0.1f, 1.0f)] private float baseCameraRenderScale = 1.0f;
         [SerializeField] [Range(0.1f, 1.0f)] private float resultRenderScale = 1.0f;
         [SerializeField] private Camera _baseCamera;
-
-        [FormerlySerializedAs("useDepthTextureWithOverrayCamera")] [SerializeField]
-        private bool useDepthTextureWithOverlayCamera;
-        
-        private RenderTexture _baseCameraColorTexture;
-        private RenderTexture _baseCameraDepthTexture;
-        private readonly List<LayerMask> _overlayCameraCullingMasks = new(maxOverlayCameraCount);
-        private readonly List<Camera> _overlayCameras = new(maxOverlayCameraCount);
-
-        private RenderTexture _resultTexture;
-        private RenderTexture _resultDepthTexture;
-        public ScriptableRenderContext ScriptableRenderContext { get; private set; }
-        public bool UseDepthTextureWithOverlayCamera => useDepthTextureWithOverlayCamera;
+        [SerializeField] private Camera _finalBlitCamera;
+        [FormerlySerializedAs("useDepthTextureWithOverrayCamera")] [SerializeField] private bool useDepthTextureWithOverlayCamera;
+        [SerializeField] private bool setRenderTextureToBaseCameraOutput;   // Whether to set ResultTexture as the base camera output destination
+        private const int maxOverlayCameraCount = 32; // Maximum number of overlay cameras.
+        private List<Camera> _overlayCameras = new(maxOverlayCameraCount);
+        private List<LayerMask> _overlayCameraCullingMasks = new(maxOverlayCameraCount);
+        /// <summary>
+        ///     URPアセットのRender Scale
+        /// </summary>
+        internal float UrpRenderScale { get; private set; }
         /// <summary>
         ///     RenderScale
         /// </summary>
@@ -43,7 +32,6 @@ namespace ResoDynamix.Runtime.Scripts
             get => baseCameraRenderScale;
             set => baseCameraRenderScale = value;
         }
-
         /// <summary>
         ///     BaseCameraのRenderScale
         /// </summary>
@@ -52,7 +40,6 @@ namespace ResoDynamix.Runtime.Scripts
             get => baseCameraRenderScale;
             set => baseCameraRenderScale = value;
         }
-
         /// <summary>
         ///     Rendering scale of the final rendering result
         /// </summary>
@@ -61,75 +48,39 @@ namespace ResoDynamix.Runtime.Scripts
             get => resultRenderScale;
             set => resultRenderScale = value;
         }
-
         /// <summary>
-        ///     Determines whether dynamic resolution control is enabled
+        /// Determine if dynamic resolution control is enabled
         /// </summary>
-        public bool IsEnable =>
-            isActiveAndEnabled // Whether the controller itself is enabled
-            && BaseCamera != null // Base camera is not null
-            && BaseCamera.isActiveAndEnabled
-            && (BaseCameraRenderScale < 1f || ResultRenderScale < 1f); // Either camera's rendering scale is less than 1.0
-        public bool UseResultRTHandle => ResultRenderScale < 1f;
+        public bool IsEnable
+        {
+            get
+            {
+                return isActiveAndEnabled // Whether the controller is enabled
+                       && BaseCamera != null // Base camera is not null
+                       && BaseCamera.isActiveAndEnabled
+                       && ( BaseCameraRenderScale < 1f || ResultRenderScale < 1f); // Either camera's rendering scale is less than 1.0
+            }
+        }
+
         public Camera BaseCamera
         {
             get => _baseCamera;
             set => _baseCamera = value;
         }
-        internal RTHandle BaseCameraColorRTHandle { get; private set; }
-        internal RTHandle BaseCameraDepthRTHandle { get; private set; }
-        internal RTHandle ResultRTHandle { get; private set; }
-        internal RTHandle ResultDepthRTHandle { get; private set; }
+
+        internal RenderTexture ResultTexture { get; set; }
+#if UNITY_2023_3_OR_NEWER
+        internal RTHandle ResultTextureHandle { get; set; }
+#endif
+        public Camera FinalBlitCamera => _finalBlitCamera;
+
         public bool UsingCameraStack => BaseCamera?.GetUniversalAdditionalCameraData()?.cameraStack?.Count > 0;
-        
-        private void Update()
-        {
-            // Disable temporarily.
-            Disable();
+        public bool NeedBlitToResultTextureManually => !setRenderTextureToBaseCameraOutput || UsingCameraStack;
 
-            if (_baseCamera == null || _overlayCameras == null) return;
-
-            var additionalCameraData = _baseCamera.GetUniversalAdditionalCameraData();
-            if (additionalCameraData.renderType == CameraRenderType.Overlay) // Base camera has become an overlay camera.
-                // Dynamic resolution control is not needed
-                return;
-
-            if (resultRenderScale >= 1f && BaseCameraRenderScale >= 1f)
-                // Dynamic resolution control is not needed
-                return;
-
-            var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-            var isHdrEnabled = urpAsset.supportsHDR && _baseCamera.allowHDR; // Whether HDR is enabled is determined by both settings
-
-            CreateBaseCameraRTHandles(urpAsset, isHdrEnabled);
-            CreateResultRTHandles(urpAsset, isHdrEnabled);
-
-            // Add overlay cameras to the list
-            var cameraStackCount = additionalCameraData.cameraStack.Count;
-            for (var i = 0; i < cameraStackCount; i++)
-            {
-                var stackedCamera = additionalCameraData.cameraStack[i];
-                if (!stackedCamera.isActiveAndEnabled) continue;
-                stackedCamera.targetTexture = BaseCamera.targetTexture;
-                _overlayCameras.Add(stackedCamera);
-                _overlayCameraCullingMasks.Add(stackedCamera.cullingMask);
-                
-                stackedCamera.cullingMask = UseResultRTHandle ? 0 : stackedCamera.cullingMask;
-            }
-        }
-
-        private void OnEnable()
-        {
-            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-        }
-
-        private void OnDisable()
-        {
-            RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-            Disable();
-        }
-
-        private static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, bool needsAlpha)
+#if UNITY_2023_3_OR_NEWER
+        [Obsolete(DeprecationMessage.CompatibilityScriptingAPIObsolete, false)]
+#endif
+        static GraphicsFormat MakeRenderTextureGraphicsFormat(bool isHdrEnabled, bool needsAlpha)
         {
             if (isHdrEnabled)
             {
@@ -146,19 +97,14 @@ namespace ResoDynamix.Runtime.Scripts
 
             return SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
         }
-
         /// <summary>
-        ///     Determines whether the specified camera is a base camera
+        /// Determine if the specified camera is a base camera
         /// </summary>
         /// <param name="camera"></param>
         /// <returns></returns>
-        internal bool IsBaseCamera(Camera camera)
-        {
-            return BaseCamera == camera;
-        }
-
+        internal bool IsBaseCamera(Camera camera) => BaseCamera == camera;
         /// <summary>
-        ///     Determines whether the specified camera is an overlay camera
+        /// Determine if the specified camera is an overlay camera
         /// </summary>
         internal bool IsOverlayCamera(Camera camera)
         {
@@ -166,21 +112,25 @@ namespace ResoDynamix.Runtime.Scripts
         }
 
         /// <summary>
-        ///     Gets the culling mask of the specified overlay camera.
+        ///     Get the culling mask of the specified overlay camera.
         /// </summary>
         /// <param name="camera"></param>
         /// <returns></returns>
         internal LayerMask GetOverlayCameraCullingMask(Camera camera)
         {
-            for (var i = 0; i < _overlayCameraCullingMasks.Count; i++)
+            for (int i = 0; i < _overlayCameraCullingMasks.Count; i++)
+            {
                 if (_overlayCameras[i] == camera)
+                {
                     return _overlayCameraCullingMasks[i];
+                }
+            }
 
             return 0;
         }
 
         /// <summary>
-        ///     Determines whether overlay cameras are empty
+        /// Determine if overlay cameras are empty
         /// </summary>
         /// <returns></returns>
         internal bool IsOverlayCamerasEmpty()
@@ -188,111 +138,148 @@ namespace ResoDynamix.Runtime.Scripts
             return _overlayCameras.Count == 0;
         }
 
-        private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
-        {
-            ScriptableRenderContext = context;
-        }
-
         private void ReleaseTemporaryTextures()
         {
-            if (_baseCameraColorTexture != null)
+            if (ResultTexture != null)
             {
-                RenderTexture.ReleaseTemporary(_baseCameraColorTexture);
-                _baseCameraColorTexture = null;
+                RenderTexture.ReleaseTemporary(ResultTexture);
+                ResultTexture = null;
+#if UNITY_2023_3_OR_NEWER
+                ResultTextureHandle?.Release();
+                ResultTextureHandle = null;
+#endif
             }
 
-            if (_baseCameraDepthTexture != null)
+            for (int i = 0; i < _overlayCameras.Count; i++)
             {
-                RenderTexture.ReleaseTemporary(_baseCameraDepthTexture);
-                _baseCameraDepthTexture = null;
-            }
-
-            if (_resultTexture != null)
-            {
-                RenderTexture.ReleaseTemporary(_resultTexture);
-                _resultTexture = null;
-            }
-            if(_resultDepthTexture != null)
-            {
-                RenderTexture.ReleaseTemporary(_resultDepthTexture);
-                _resultDepthTexture = null;
-            }
-            ResultRTHandle?.Release();
-            ResultDepthRTHandle?.Release();
-            BaseCameraColorRTHandle?.Release();
-            BaseCameraDepthRTHandle?.Release();
-            for (var i = 0; i < _overlayCameras.Count; i++)
                 if (_overlayCameras[i] && _overlayCameras[i] != null)
+                {
                     _overlayCameras[i].targetTexture = null;
-        }
+                }
+            }
 
+            if (_finalBlitCamera)
+            {
+                _finalBlitCamera.targetTexture = null;
+            }
+        }
+        private void OnEnable()
+        {
+            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+        }
+        private void OnDisable()
+        {
+            RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+            Disable();
+        }
+        private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
+        {
+            if (BaseCamera == camera)
+            {
+                // Rendering of the camera controlled by this controller begins
+                var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+                // Store the URP asset's rendering scale
+                UrpRenderScale = urpAsset.renderScale;
+                // Override with the rendering scale specified in ResoDynamixController.
+                urpAsset.renderScale = BaseCameraRenderScale;
+            }
+        }
+        private void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
+        {
+            if (UrpRenderScale != 0.0f
+                && _overlayCameras.Count > 0
+                && camera == _overlayCameras[^1])
+            {
+                // Restore the render scale.
+                var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+                urpAsset.renderScale = UrpRenderScale;
+            }
+        }
         private void Disable()
         {
             ReleaseTemporaryTextures();
+            if (UrpRenderScale != 0.0f)
+            {
+                // Restore URP's render scale
+                var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+                urpAsset.renderScale = UrpRenderScale;
+            }
+            if(_finalBlitCamera && _finalBlitCamera != null )
+                _finalBlitCamera.enabled = false;
 
             // Restore overlay camera culling masks
-            for (var i = 0; i < _overlayCameras.Count; ++i)
+            for (int i = 0; i < _overlayCameras.Count; ++i)
+            {
                 if (_overlayCameras[i])
+                {
                     _overlayCameras[i].cullingMask = _overlayCameraCullingMasks[i];
+                }
+            }
             _overlayCameras.Clear();
             _overlayCameraCullingMasks.Clear();
         }
 
-        private void CreateBaseCameraRTHandles(UniversalRenderPipelineAsset urpAsset, bool isHdrEnabled)
+        void Update()
         {
-            var baseCameraColorDesc = new RenderTextureDescriptor(
-                Mathf.FloorToInt(Screen.width * baseCameraRenderScale),
-                Mathf.FloorToInt(Screen.height * baseCameraRenderScale));
-            baseCameraColorDesc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, false);
-            baseCameraColorDesc.depthBufferBits = 0; //useDepthTextureWithOverlayCamera ? 32 : 0;
-            baseCameraColorDesc.msaaSamples = urpAsset.msaaSampleCount;
-            baseCameraColorDesc.sRGB = QualitySettings.activeColorSpace == ColorSpace.Linear;
-            baseCameraColorDesc.useMipMap = false;
-            _baseCameraColorTexture = RenderTexture.GetTemporary(baseCameraColorDesc);
+            // Disable once
+            Disable();
 
-            var baseCameraDepthDesc = baseCameraColorDesc;
-            baseCameraDepthDesc.graphicsFormat = GraphicsFormat.None;
-            
-        #if !UNITY_EDITOR && UNITY_ANDROID
-            baseCameraDepthDesc.depthBufferBits = 24;
-        #else
-            baseCameraDepthDesc.depthBufferBits = 32;
-        #endif
-            _baseCameraDepthTexture = RenderTexture.GetTemporary(baseCameraDepthDesc);
-            BaseCameraColorRTHandle = RTHandles.Alloc(_baseCameraColorTexture);
-            BaseCameraDepthRTHandle = RTHandles.Alloc(_baseCameraDepthTexture);
-        }
+            if (_baseCamera == null || _overlayCameras == null) return;
 
-        private void CreateResultRTHandles(UniversalRenderPipelineAsset urpAsset, bool isHdrEnabled)
-        {
-            // If the result rendering scale is 1.0 or higher, write directly to the final rendering destination, so do nothing
-            if(resultRenderScale >= 1f) return;
+            UniversalAdditionalCameraData additionalCameraData = _baseCamera.GetUniversalAdditionalCameraData();
+            if (additionalCameraData.renderType == CameraRenderType.Overlay )// Base camera is set as overlay camera.
+            {
+                // Dynamic resolution control is not needed
+                return;
+            }
+
+            if (resultRenderScale >= 1f && BaseCameraRenderScale >= 1f)
+            {
+                // Dynamic resolution control is not needed
+                return;
+            }
+            var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            // Store the URP asset's rendering scale
+            UrpRenderScale = urpAsset.renderScale;
             
-            // If the result rendering scale is less than 1.0, create an intermediate texture
-            var resultScale = resultRenderScale;
-            var colorTextrueDesc = new RenderTextureDescriptor(
+            // Create a texture to write the rendering result to.
+            float resultScale = resultRenderScale;
+            var resultTextrueDesc = new RenderTextureDescriptor(
                 Mathf.FloorToInt(Screen.width * resultScale),
                 Mathf.FloorToInt(Screen.height * resultScale));
-            
-            colorTextrueDesc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, false);
-            colorTextrueDesc.depthBufferBits = 0;
-            colorTextrueDesc.msaaSamples = urpAsset.msaaSampleCount;
-            colorTextrueDesc.sRGB = QualitySettings.activeColorSpace == ColorSpace.Linear;
-            colorTextrueDesc.useMipMap = false;
-            _resultTexture = RenderTexture.GetTemporary(colorTextrueDesc);
-            ResultRTHandle = RTHandles.Alloc(_resultTexture);
 
-            if (useDepthTextureWithOverlayCamera)
+            var isHdrEnabled = urpAsset.supportsHDR && _baseCamera.allowHDR; // Whether HDR is enabled is determined by both settings
+            resultTextrueDesc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, false);
+            resultTextrueDesc.depthBufferBits = useDepthTextureWithOverlayCamera ? 32 : 0;
+            resultTextrueDesc.msaaSamples = urpAsset.msaaSampleCount;
+            resultTextrueDesc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            resultTextrueDesc.useMipMap = false;
+            ResultTexture = RenderTexture.GetTemporary(resultTextrueDesc);
+#if UNITY_2023_3_OR_NEWER
+            ResultTextureHandle = RTHandles.Alloc(ResultTexture);
+#endif
+            // Add overlay cameras to the list
+            int cameraStackCount = additionalCameraData.cameraStack.Count;
+            for (int i = 0; i < cameraStackCount; i++)
             {
-                var depthTextureDesc = colorTextrueDesc;
-                depthTextureDesc.graphicsFormat = GraphicsFormat.None;
-            #if !UNITY_EDITOR && UNITY_ANDROID
-                depthTextureDesc.depthBufferBits = 24;
-            #else
-                depthTextureDesc.depthBufferBits = 32;
-            #endif
-                _resultDepthTexture = RenderTexture.GetTemporary(depthTextureDesc);
-                ResultDepthRTHandle = RTHandles.Alloc(_resultDepthTexture);
+                Camera stackedCamera = additionalCameraData.cameraStack[i];
+                if (!stackedCamera.isActiveAndEnabled) continue;
+                stackedCamera.targetTexture = BaseCamera.targetTexture;
+                _overlayCameras.Add(stackedCamera);
+                _overlayCameraCullingMasks.Add(stackedCamera.cullingMask);
+                stackedCamera.cullingMask = 0;
+            }
+
+            // Final Blit camera inherits the base camera's state
+            _finalBlitCamera.enabled = _baseCamera.enabled;
+            _finalBlitCamera.depth = _baseCamera.depth + 1;
+            _finalBlitCamera.targetTexture = BaseCamera.targetTexture; 
+            // Set the base camera's RenderTarget to ResultTexture to avoid unnecessary Blit operations
+            if (!NeedBlitToResultTextureManually)
+            {
+                BaseCamera.targetTexture = ResultTexture;
             }
         }
     }

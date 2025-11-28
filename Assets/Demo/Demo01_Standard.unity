@@ -698,6 +698,80 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1001 &1529636297
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 8545301343283559697, guid: 0fc4f0eacdbd1ed43b6c3a777f56aef6,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8545301343283559697, guid: 0fc4f0eacdbd1ed43b6c3a777f56aef6,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8545301343283559697, guid: 0fc4f0eacdbd1ed43b6c3a777f56aef6,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8545301343283559697, guid: 0fc4f0eacdbd1ed43b6c3a777f56aef6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8545301343283559697, guid: 0fc4f0eacdbd1ed43b6c3a777f56aef6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8545301343283559697, guid: 0fc4f0eacdbd1ed43b6c3a777f56aef6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8545301343283559697, guid: 0fc4f0eacdbd1ed43b6c3a777f56aef6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8545301343283559697, guid: 0fc4f0eacdbd1ed43b6c3a777f56aef6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8545301343283559697, guid: 0fc4f0eacdbd1ed43b6c3a777f56aef6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8545301343283559697, guid: 0fc4f0eacdbd1ed43b6c3a777f56aef6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8545301343283559702, guid: 0fc4f0eacdbd1ed43b6c3a777f56aef6,
+        type: 3}
+      propertyPath: m_Name
+      value: FinalBlitDynamicResolutionImageCamera
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0fc4f0eacdbd1ed43b6c3a777f56aef6, type: 3}
+--- !u!20 &1529636298 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 8545301343283559696, guid: 0fc4f0eacdbd1ed43b6c3a777f56aef6,
+    type: 3}
+  m_PrefabInstance: {fileID: 1529636297}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1710456130
 GameObject:
   m_ObjectHideFlags: 0
@@ -730,7 +804,9 @@ MonoBehaviour:
   baseCameraRenderScale: 0.4
   resultRenderScale: 1
   _baseCamera: {fileID: 396177635}
+  _finalBlitCamera: {fileID: 1529636298}
   useDepthTextureWithOverlayCamera: 0
+  setRenderTextureToBaseCameraOutput: 0
 --- !u!4 &1710456132
 Transform:
   m_ObjectHideFlags: 0
@@ -803,3 +879,4 @@ SceneRoots:
   - {fileID: 56595117}
   - {fileID: 577134532}
   - {fileID: 1264742202}
+  - {fileID: 1529636297}
