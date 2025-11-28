@@ -17,7 +17,7 @@ Installation is performed using the following steps.
 1. Select Window > Package Manager
 2. Select the "+" button > Add package from git URL
 3. Enter the following to install:
-   * git+ssh://git@github.com/SGE-CoreTech/ResoDynamix.git?path=/Assets/ResoDynamix#compatible-mode
+   * https://github.com/CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix#compatible-mode
 
 <p align="center">
   <img width="60%" src="https://user-images.githubusercontent.com/47441314/143533003-177a51fc-3d11-4784-b9d2-d343cc622841.png" alt="Package Manager">
@@ -28,13 +28,13 @@ Alternatively, open Packages/manifest.json and add the following to the dependen
 ```json
 {
     "dependencies": {
-        "jp.co.cyberagent.reso-dynamix": "git+ssh://git@github.com/SGE-CoreTech/ResoDynamix.git?path=/Assets/ResoDynamix#compatible-mode"
+        "jp.co.cyberagent.reso-dynamix": "https://github.com/CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix#compatible-mode"
     }
 }
 ```
 
 
-* git+ssh://git@github.com/SGE-CoreTech/ResoDynamix.git?path=/Assets/ResoDynamix#compatible-mode
+* https://github.com/CyberAgentGameEntertainment/ResoDynamix.git?path=/Assets/ResoDynamix#compatible-mode
 
 Note: If you see a message like `No 'git' executable was found. Please install Git on your system and restart Unity`, you need to set up Git on your machine.
 
