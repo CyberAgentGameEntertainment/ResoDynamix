@@ -5,7 +5,8 @@ description: "ResoDynamix パッケージのバージョンをバンプする。
 
 # ResoDynamix バージョンバンプスキル
 
-`Assets/ResoDynamix/package.json` のバージョンをバンプし、`bump-version` ブランチで push したうえでタグを作成する。
+`Assets/ResoDynamix/package.json` のバージョンをバンプし、`bump-version` ブランチで push して PR 作成までを行う。
+タグ作成は **PR が main に merge された後** に別途実施する（後述）。
 
 ResoDynamix は **サブモジュールを含まない単独パッケージ** なので、SIRIUS のような複数パッケージ／サブモジュール処理は行わない。
 
@@ -13,6 +14,12 @@ ResoDynamix は **サブモジュールを含まない単独パッケージ** �
 
 ```
 /bump-version
+```
+
+引数として `tag` を渡すと **Phase B（PR merge 後のタグ付け）** モードで動作する。
+
+```
+/bump-version tag
 ```
 
 ---
@@ -25,28 +32,72 @@ ResoDynamix は **サブモジュールを含まない単独パッケージ** �
 
 ---
 
-## 実行フロー
+## Phase A: バージョンバンプ PR の作成
 
-全ての git コマンドは ResoDynamix リポジトリのルート (`d:/ResoDynamix`) で実行する。
+引数なしで呼ばれた場合のフロー。全ての git コマンドは ResoDynamix リポジトリのルート (`d:/ResoDynamix`) で実行する。
 
-### Step 1: 現在のバージョン確認
+### Step 1: 事前状態の検証
+
+以下を順番に検証し、ひとつでも失敗したらエラー内容を表示して処理を中止する。
+
+1. **現在ブランチが `main` であること**:
+   ```bash
+   git rev-parse --abbrev-ref HEAD
+   ```
+   `main` 以外であればエラーを表示して中止する:
+   ```
+   エラー: 現在ブランチが <branch> です。main に切り替えてから再実行してください:
+     git switch main
+   ```
+
+2. **作業ツリーがクリーンであること**:
+   ```bash
+   git status --porcelain
+   ```
+   出力が非空ならエラー:
+   ```
+   エラー: 未コミットの変更があります。コミット／stash してから再実行してください。
+   ```
+
+3. **`origin/main` を最新化し、ローカル main と一致していること**:
+   ```bash
+   git fetch origin main
+   git rev-parse HEAD
+   git rev-parse origin/main
+   ```
+   両者が一致しない場合は fast-forward を試みる:
+   ```bash
+   git pull --ff-only origin main
+   ```
+   fast-forward できない（ローカル先行・分岐がある）場合はエラーを表示して中止する:
+   ```
+   エラー: ローカル main が origin/main と分岐しています。状態を整えてから再実行してください。
+   ```
+
+4. **`bump-version` ブランチがローカル／リモート双方に存在しないこと**:
+   ```bash
+   git branch --list bump-version
+   git ls-remote --heads origin bump-version
+   ```
+   いずれかで出力が非空ならエラーを表示して中止する:
+   ```
+   エラー: bump-version ブランチが既に存在します。
+   ローカル:  git branch -d bump-version
+   リモート:  git push origin --delete bump-version
+   ```
+
+### Step 2: 現在のバージョンと必須フィールドの確認
 
 1. `Assets/ResoDynamix/package.json` を Read ツールで読み込む
-2. `"version"` フィールドが semver 形式（`X.Y.Z`）であることを検証する
-3. 現在のバージョンを記憶する
-
-### Step 2: 事前チェック
-
-`package.json` に以下のフィールドが揃っているか検証する:
-
-- `name` — `jp.co.cyberagent.reso-dynamix` であること
-- `displayName` — 存在すること
-- `version` — semver 形式（`X.Y.Z`）であること
-- `unity` — 存在すること
-- `license` — 存在すること
-- `author` — 存在すること
-
-不足・不正なフィールドがあれば警告を表示し、AskUserQuestion で続行/中止を確認する。
+2. 以下のフィールドが揃っているか検証する:
+   - `name` — `jp.co.cyberagent.reso-dynamix` であること
+   - `displayName` — 存在すること
+   - `version` — semver 形式（`X.Y.Z`）であること
+   - `unity` — 存在すること
+   - `license` — 存在すること
+   - `author` — 存在すること
+3. 不足・不正なフィールドがあれば警告を表示し、AskUserQuestion で続行/中止を確認する
+4. 現在のバージョンを記憶する
 
 ### Step 3: バンプ種別の選択
 
@@ -73,26 +124,9 @@ AskUserQuestion でバンプ種別を確認する:
 
 ### Step 5: ブランチ作成
 
-1. 作業ツリーがクリーンであることを確認する:
-   ```bash
-   git status --porcelain
-   ```
-   - 未コミットの変更がある場合はエラーを表示して中止する
-
-2. `bump-version` ブランチが既に存在しないか確認し、作成する:
-   ```bash
-   git branch --list bump-version
-   ```
-   - 出力が非空（既に存在する）→ エラーを表示して処理を中止し、ユーザーに対処を案内する:
-     ```
-     エラー: bump-version ブランチが既に存在します。
-     不要であれば削除してから再実行してください:
-       git branch -d bump-version
-     ```
-   - 出力が空 → ブランチを作成する:
-     ```bash
-     git checkout -b bump-version
-     ```
+```bash
+git checkout -b bump-version
+```
 
 ### Step 6: package.json の更新
 
@@ -103,26 +137,100 @@ AskUserQuestion でバンプ種別を確認する:
 ```bash
 git add Assets/ResoDynamix/package.json
 git commit -m "chore: bump version to X.Y.Z"
-git push origin bump-version
+git push -u origin bump-version
 ```
 
 `package.json` 以外のファイルを add してはならない。
 
-### Step 8: タグの作成と push
+### Step 8: PR 作成
+
+`gh` で `bump-version` → `main` の PR を作成する:
 
 ```bash
-git tag vX.Y.Z
-git push origin vX.Y.Z
+gh pr create --base main --head bump-version \
+  --title "chore: bump version to X.Y.Z" \
+  --body "Bump Reso Dynamix package version: X.Y.Z → X'.Y'.Z'"
 ```
 
-### Step 9: 完了報告
+### Step 9: Phase A 完了報告
 
-以下の情報を表示して完了:
+以下を表示する:
 
 - 変更前のバージョン → 変更後のバージョン
 - push 先ブランチ: `bump-version`
+- 作成された PR URL
+- **次のアクション**: PR を main に merge した後、`/bump-version tag` を実行してタグを作成すること
+
+> **タグはこの段階では作成しない**。squash merge / rebase / 追加修正により bump-version 上のコミットと main 上のリリースコミットが乖離する可能性があるため、タグは main の merge commit に対して打つ必要がある。
+
+---
+
+## Phase B: PR merge 後のタグ作成
+
+`/bump-version tag` で呼ばれた場合のフロー。
+
+### Step B-1: 事前状態の検証
+
+1. **現在ブランチが `main` であること**:
+   ```bash
+   git rev-parse --abbrev-ref HEAD
+   ```
+   `main` でなければエラーを表示して中止する。
+
+2. **`origin/main` を fetch & fast-forward pull**:
+   ```bash
+   git fetch origin main
+   git pull --ff-only origin main
+   ```
+
+3. **作業ツリーがクリーンであること**:
+   ```bash
+   git status --porcelain
+   ```
+
+### Step B-2: タグ対象バージョンの確定
+
+1. `Assets/ResoDynamix/package.json` を Read し、現在の `"version"` を取得する（これがリリース対象バージョン）
+2. **直近の main 上で `package.json` の `"version"` を変更したコミットを特定する**:
+   ```bash
+   git log -1 --format=%H -- Assets/ResoDynamix/package.json
+   ```
+   そのコミットの差分で `"version"` 行が変更されていることを確認する:
+   ```bash
+   git show <hash> -- Assets/ResoDynamix/package.json
+   ```
+   `"version"` を変更していない（無関係の編集だった）場合はエラーを表示し、ユーザーに対象コミットを手動指定するよう案内する。
+3. 同名タグ (`vX.Y.Z`) が既に存在しないか確認する:
+   ```bash
+   git tag --list vX.Y.Z
+   git ls-remote --tags origin vX.Y.Z
+   ```
+   いずれかで存在すればエラーを表示して中止する。
+
+### Step B-3: 確認
+
+AskUserQuestion で確認する:
+
+```
+以下のコミットにタグ vX.Y.Z を作成します:
+  <hash> <subject>
+
+- タグを作成する
+- キャンセル
+```
+
+### Step B-4: タグ作成と push
+
+```bash
+git tag vX.Y.Z <hash>
+git push origin vX.Y.Z
+```
+
+### Step B-5: Phase B 完了報告
+
 - 作成されたタグ: `vX.Y.Z`
-- 次のアクション案内: GitHub 上で `bump-version` → `main` の PR を作成する
+- タグが指すコミット: `<hash>`
+- push 先: `origin`
 
 ---
 
@@ -130,6 +238,6 @@ git push origin vX.Y.Z
 
 - ResoDynamix はサブモジュールを持たない単独リポジトリなので、`git -C <submodule>` 形式は使わない
 - タグのフォーマットは `vX.Y.Z`（例: `v1.1.0`）
-- `compatible-mode` ブランチ用のバンプは対象外。`main` ブランチでのみ実行することを想定する
+- `compatible-mode` ブランチ用のバンプは対象外。`main` ブランチでのみ実行する
+- Phase A はタグを作成しない。タグは Phase B（PR merge 後）でのみ作成する
 - push やタグの push が失敗した場合はエラーを表示してユーザーに対処を案内する
-- ブランチ作成前に作業ツリーがクリーンであることを必ず確認する
