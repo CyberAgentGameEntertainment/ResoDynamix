@@ -2,11 +2,9 @@
 // Copyright 2025 CyberAgent, Inc.
 // --------------------------------------------------------------
 
-using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
 
 namespace ResoDynamix.Runtime.Scripts.RenderPipeline
@@ -34,14 +32,14 @@ namespace ResoDynamix.Runtime.Scripts.RenderPipeline
             {
                 // Preparing the texture for the result rendering destination
                 var resultRtTexture = renderGraph.ImportTexture(_resoDynamixController.ResultRTHandle);
-                renderGraph.AddBlitPass(resourceData.activeColorTexture, resultRtTexture,
-                    Vector2.one, Vector2.zero);
+                renderGraph.AddBlitPassCustom(resourceData.activeColorTexture, resultRtTexture,
+                    Vector2.one, Vector2.zero, passName: "Resodynamix.BlitBaseToResult");
             }
             else
             {
                 // Otherwise, blit the base camera's rendering result to the original write destination
-                renderGraph.AddBlitPass(resourceData.activeColorTexture, contextItem.BaseCameraColorTexture,
-                    Vector2.one, Vector2.zero);
+                renderGraph.AddBlitPassCustom(resourceData.activeColorTexture, contextItem.BaseCameraColorTexture,
+                    Vector2.one, Vector2.zero, passName: "Resodynamix.BlitBaseToOriginal");
             }
             resourceData.cameraColor = contextItem.BaseCameraColorTexture;
             resourceData.cameraDepth = contextItem.BaseCameraDepthTexture;

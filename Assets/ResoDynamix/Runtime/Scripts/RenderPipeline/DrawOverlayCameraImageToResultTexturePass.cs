@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
-using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
 
 namespace ResoDynamix.Runtime.Scripts.RenderPipeline
@@ -88,8 +87,8 @@ namespace ResoDynamix.Runtime.Scripts.RenderPipeline
             }
 
             // Since we're using an intermediate texture for result rendering, blit to the final rendering destination.
-            renderGraph.AddBlitPass(resultRtTexture, resourceData.activeColorTexture, Vector2.one,
-                Vector2.zero);
+            renderGraph.AddBlitPassCustom(resultRtTexture, resourceData.activeColorTexture, 
+                Vector2.one, Vector2.zero, passName: "Resodynamix.BlitOverlayToScreen");
         }
         
         private RendererListHandle CreateTransparentRendererList(RenderGraph renderGraph, CullingResults cullResults, UniversalCameraData cameraData, UniversalRenderingData renderingData, UniversalLightData lightData)
