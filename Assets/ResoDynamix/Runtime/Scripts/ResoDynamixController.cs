@@ -249,6 +249,7 @@ namespace ResoDynamix.Runtime.Scripts
             baseCameraColorDesc.sRGB = QualitySettings.activeColorSpace == ColorSpace.Linear;
             baseCameraColorDesc.useMipMap = false;
             _baseCameraColorTexture = RenderTexture.GetTemporary(baseCameraColorDesc);
+            _baseCameraColorTexture.name = "Resodynamix_BaseCameraColor";
 
             var baseCameraDepthDesc = baseCameraColorDesc;
             baseCameraDepthDesc.graphicsFormat = GraphicsFormat.None;
@@ -259,6 +260,7 @@ namespace ResoDynamix.Runtime.Scripts
             baseCameraDepthDesc.depthBufferBits = 32;
         #endif
             _baseCameraDepthTexture = RenderTexture.GetTemporary(baseCameraDepthDesc);
+            _baseCameraDepthTexture.name = "Resodynamix_BaseCameraDepth";
             BaseCameraColorRTHandle = RTHandles.Alloc(_baseCameraColorTexture);
             BaseCameraDepthRTHandle = RTHandles.Alloc(_baseCameraDepthTexture);
         }
@@ -280,6 +282,7 @@ namespace ResoDynamix.Runtime.Scripts
             colorTextrueDesc.sRGB = QualitySettings.activeColorSpace == ColorSpace.Linear;
             colorTextrueDesc.useMipMap = false;
             _resultTexture = RenderTexture.GetTemporary(colorTextrueDesc);
+            _resultTexture.name = "Resodynamix_ResultColor";
             ResultRTHandle = RTHandles.Alloc(_resultTexture);
 
             if (useDepthTextureWithOverlayCamera)
@@ -292,6 +295,7 @@ namespace ResoDynamix.Runtime.Scripts
                 depthTextureDesc.depthBufferBits = 32;
             #endif
                 _resultDepthTexture = RenderTexture.GetTemporary(depthTextureDesc);
+                _resultDepthTexture.name = "Resodynamix_ResultDepth";
                 ResultDepthRTHandle = RTHandles.Alloc(_resultDepthTexture);
             }
         }
